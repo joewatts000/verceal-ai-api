@@ -43,20 +43,5 @@ async function callAnthropicWithStreaming() {
   }
 }
 
-// Example: Call Replicate
-async function callReplicate() {
-  try {
-    const result = await aiClient.callReplicate({
-      model: 'stability-ai/sdxl',
-      input: {
-        prompt: 'A photo of a cat on a beach',
-      },
-    });
-    console.log('Replicate response:', result);
-  } catch (error) {
-    console.error('Error calling Replicate:', error);
-  }
-}
-
 // Export the functions
-export { callOpenAI, callAnthropicWithStreaming, callReplicate };
+export { callOpenAI, callAnthropicWithStreaming };

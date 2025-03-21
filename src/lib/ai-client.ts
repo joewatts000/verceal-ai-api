@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type AiRequestOptions = {
   prompt: string;
   model: string;
@@ -27,10 +28,6 @@ export class AiClient {
 
   async callAnthropic(options: AiRequestOptions) {
     return this.callProvider('anthropic', options);
-  }
-
-  async callOpenRouter(options: AiRequestOptions) {
-    return this.callProvider('openrouter', options);
   }
 
   async callGemini(options: AiRequestOptions) {

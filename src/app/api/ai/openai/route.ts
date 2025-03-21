@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { openai } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';

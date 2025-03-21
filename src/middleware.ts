@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Apply rate limiting
-  const ip = request.ip || 'unknown';
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
   const identifier = `${apiKey}:${ip}`;
   const { limited, remaining, reset } = rateLimit(identifier);
 
