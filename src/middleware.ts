@@ -64,14 +64,13 @@ export function middleware(request: NextRequest) {
     const keyMap: Record<string, string> = {
       openai: 'OPENAI_API_KEY',
       anthropic: 'ANTHROPIC_API_KEY',
-      openrouter: 'OPENROUTER_API_KEY',
-      replicate: 'REPLICATE_API_KEY',
+      gemini: 'GOOGLE_AI_API_KEY'
     };
 
     const envKey = keyMap[provider.toLowerCase()];
     if (!envKey) {
       return NextResponse.json(
-        { error: `Unknown provider: ${provider}` },
+        { error: `Middleware Unknown provider: ${provider}` },
         { status: 400 }
       );
     }

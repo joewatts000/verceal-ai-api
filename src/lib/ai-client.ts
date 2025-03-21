@@ -33,6 +33,10 @@ export class AiClient {
     return this.callProvider('openrouter', options);
   }
 
+  async callGemini(options: AiRequestOptions) {
+    return this.callProvider('gemini', options);
+  }
+
   async callReplicate(options: ReplicateRequestOptions) {
     const response = await fetch(`${this.baseUrl}/api/ai/replicate`, {
       method: 'POST',

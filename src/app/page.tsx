@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from 'react'
+import { useState } from 'react';
 
 const providersAndModels: { [key: string]: string[] } = {
   openai: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'],
   anthropic: ['claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022'],
-  // replicate: ['stability-ai/sdxl']
+  gemini: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro'],
 };
 
 const getModelOptions = (provider: keyof typeof providersAndModels) => {
@@ -24,6 +24,14 @@ const getModelOptions = (provider: keyof typeof providersAndModels) => {
         <>
           <option value="claude-3-7-sonnet-20250219">Claude 3.7 Sonnet</option>
           <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+        </>
+      )
+    case 'gemini':
+      return (
+        <>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+          <option value="gemini-pro">Gemini Pro</option>
         </>
       )
     default:

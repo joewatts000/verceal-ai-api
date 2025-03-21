@@ -11,7 +11,7 @@ export function getProviderApiKey(provider: string): string {
   const keyMap: Record<string, string> = {
     openai: 'OPENAI_API_KEY',
     anthropic: 'ANTHROPIC_API_KEY',
-    replicate: 'REPLICATE_API_KEY',
+    gemini: 'GOOGLE_AI_API_KEY',
   };
 
   const envKey = keyMap[provider.toLowerCase()];
