@@ -1,7 +1,7 @@
 import { AiClient } from '../lib/ai-client';
 
 // Create a client instance
-const aiClient = new AiClient('http://localhost:3000');
+const aiClient = new AiClient('http://localhost:3000', process.env.NEXT_PUBLIC_API_ACCESS_KEY || '');
 
 // Example: Call OpenAI
 async function callOpenAI() {

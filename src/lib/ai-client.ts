@@ -14,9 +14,11 @@ type ReplicateRequestOptions = {
 
 export class AiClient {
   private baseUrl: string;
+  private apiKey: string;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, apiKey: string) {
     this.baseUrl = baseUrl;
+    this.apiKey = apiKey;
   }
 
   async callOpenAi(options: AiRequestOptions) {
@@ -27,11 +29,16 @@ export class AiClient {
     return this.callProvider('anthropic', options);
   }
 
+  async callOpenRouter(options: AiRequestOptions) {
+    return this.callProvider('openrouter', options);
+  }
+
   async callReplicate(options: ReplicateRequestOptions) {
     const response = await fetch(`${this.baseUrl}/api/ai/replicate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-Key': this.apiKey
       },
       body: JSON.stringify(options),
     });
@@ -50,6 +57,7 @@ export class AiClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-API-Key': this.apiKey
         },
         body: JSON.stringify(options),
       });
@@ -65,6 +73,7 @@ export class AiClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-API-Key': this.apiKey
         },
         body: JSON.stringify(options),
       });
