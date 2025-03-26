@@ -46,6 +46,7 @@ export default function Home() {
   const [response, setResponse] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [key, setKey] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,7 +66,7 @@ export default function Home() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-API-Key': process.env.NEXT_PUBLIC_API_ACCESS_KEY || '',
+            'X-API-Key': key,
           },
           body: JSON.stringify(requestBody),
         })
@@ -89,10 +90,10 @@ export default function Home() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-API-Key': process.env.NEXT_PUBLIC_API_ACCESS_KEY || '',
+            'X-API-Key': key,
           },
           body: JSON.stringify(requestBody),
-        })
+        });
 
         const data = await res.json()
 
@@ -161,6 +162,19 @@ export default function Home() {
               rows={4}
               className="block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
               placeholder="Enter your prompt here..."
+            />
+          </div>
+          <div>
+            <label htmlFor="key" className="block text-sm font-medium mb-1">
+              Key
+            </label>
+            <textarea
+              id="key"
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              rows={4}
+              className="block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+              placeholder="Enter your key here..."
             />
           </div>
           <button

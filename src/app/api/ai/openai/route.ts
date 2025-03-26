@@ -4,6 +4,24 @@ import { generateText, streamText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { logUsage } from '@/lib/usage-logger';
 
+// Helper function to add CORS headers to a response
+function addCorsHeaders(response: NextResponse, request: NextRequest) {
+  const origin = request.headers.get('origin') || '*';
+  response.headers.set('Access-Control-Allow-Origin', origin);
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  return response;
+}
+
+export async function OPTIONS(request: NextRequest) {
+  const response = new NextResponse(null, { status: 204 });
+  response.headers.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
+  response.headers.set('Access-Control-Max-Age', '86400');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  return response;
+}
+
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   
@@ -11,11 +29,17 @@ export async function POST(req: NextRequest) {
     const { prompt, model, stream = false, systemPrompt, options = {} } = await req.json();
 
     if (!prompt) {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+      return addCorsHeaders(
+        NextResponse.json({ error: 'Prompt is required' }, { status: 400 }),
+        req
+      );
     }
 
     if (!model) {
-      return NextResponse.json({ error: 'Model is required' }, { status: 400 });
+      return addCorsHeaders(
+        NextResponse.json({ error: 'Model is required' }, { status: 400 }),
+        req
+      );
     }
 
     const openaiModel = openai(model);
@@ -36,7 +60,14 @@ export async function POST(req: NextRequest) {
         success: true
       });
 
-      return result.toDataStreamResponse();
+      const streamResponse = result.toDataStreamResponse();
+      
+      // Add CORS headers to the stream response
+      const origin = req.headers.get('origin') || '*';
+      streamResponse.headers.set('Access-Control-Allow-Origin', origin);
+      streamResponse.headers.set('Access-Control-Allow-Credentials', 'true');
+      
+      return streamResponse;
     } else {
       const result = await generateText({
         model: openaiModel,
@@ -45,7 +76,7 @@ export async function POST(req: NextRequest) {
         ...options
       });
 
-      // Log usage with token information
+      // Log usage
       logUsage({
         timestamp: startTime,
         provider: 'openai',
@@ -54,7 +85,10 @@ export async function POST(req: NextRequest) {
         success: true
       });
 
-      return NextResponse.json(result);
+      return addCorsHeaders(
+        NextResponse.json(result),
+        req
+      );
     }
   } catch (error: any) {
     console.error('OpenAI API error:', error);
@@ -63,14 +97,17 @@ export async function POST(req: NextRequest) {
     logUsage({
       timestamp: startTime,
       provider: 'openai',
-      model: 'unknown', // We might not know the model if the error occurred early
+      model: 'unknown',
       success: false,
       error: error.message
     });
     
-    return NextResponse.json(
-      { error: error.message || 'An error occurred with the OpenAI API' },
-      { status: 500 }
+    return addCorsHeaders(
+      NextResponse.json(
+        { error: error.message || 'An error occurred with the OpenAI API' },
+        { status: 500 }
+      ),
+      req
     );
   }
 }
