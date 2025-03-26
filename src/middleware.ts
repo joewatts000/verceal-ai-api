@@ -5,6 +5,7 @@ import { rateLimit } from './lib/rate-limit';
 
 export function middleware(request: NextRequest) {
   // Only apply to /api/ai routes
+  console.log(request.nextUrl.pathname);
   if (!request.nextUrl.pathname.startsWith('/api/ai')) {
     return NextResponse.next();
   }
