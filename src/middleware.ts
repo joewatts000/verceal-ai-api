@@ -11,11 +11,11 @@ export function middleware(request: NextRequest) {
 
   // Check for API key in the request
   const apiKey = request.headers.get('X-API-Key');
-  const validApiKey = process.env.NEXT_PUBLIC_API_ACCESS_KEY;
+  const validApiKey = process.env.E2_AI_API_ACCESS_KEY;
 
   if (!validApiKey) {
     return NextResponse.json(
-      { error: 'Server configuration error: NEXT_PUBLIC_API_ACCESS_KEY not set' },
+      { error: 'Server configuration error: E2_AI_API_ACCESS_KEY not set' },
       { status: 500 }
     );
   }
