@@ -23,11 +23,11 @@ export async function POST(req: NextRequest) {
   try {
     // Get API key from request
     const apiKey = req.headers.get('x-api-key');
-    const validApiKey = process.env.API_ACCESS_KEY;
+    const validApiKey = process.env.E2_AI_API_ACCESS_KEY;
 
     if (!validApiKey) {
       return NextResponse.json(
-        { error: 'Server configuration error: API_ACCESS_KEY not set' },
+        { error: 'Server configuration error: E2_AI_API_ACCESS_KEY not set' },
         { status: 500 }
       );
     }
