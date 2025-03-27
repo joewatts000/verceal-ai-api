@@ -20,24 +20,6 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
   
   try {
-    // Get API key from request
-    const apiKey = req.headers.get('x-api-key');
-    const validApiKey = process.env.E2_AI_API_ACCESS_KEY;
-
-    if (!validApiKey) {
-      return NextResponse.json(
-        { error: 'Server configuration error: E2_AI_API_ACCESS_KEY not set' },
-        { status: 500 }
-      );
-    }
-
-    if (!apiKey || apiKey !== validApiKey) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Invalid or missing API key' },
-        { status: 401 }
-      );
-    }
-    
     // Parse request body
     const { prompt, model = 'dall-e-3', n = 1, size = '1024x1024', quality = 'standard', style = 'vivid' } = await req.json();
 

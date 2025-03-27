@@ -21,24 +21,6 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
   
   try {
-    // Get API key from request
-    const apiKey = req.headers.get('x-api-key');
-    const validApiKey = process.env.E2_AI_API_ACCESS_KEY;
-
-    if (!validApiKey) {
-      return NextResponse.json(
-        { error: 'Server configuration error: E2_AI_API_ACCESS_KEY not set' },
-        { status: 500 }
-      );
-    }
-
-    if (!apiKey || apiKey !== validApiKey) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Invalid or missing API key' },
-        { status: 401 }
-      );
-    }
-    
     // Parse request body
     const { prompt, model = 'imagegeneration@005', size = '1024x1024', n = 1 } = await req.json();
 
@@ -197,9 +179,22 @@ export async function POST(req: NextRequest) {
     });
     
     // Format the response to match OpenAI's format for consistency
-    const formattedResponse = {
+    interface Image {
+      url: string;
+      mimeType: string;
+    }
+
+    interface FormattedResponse {
+      created: number;
+      data: Array<{
+        url: string;
+        revised_prompt: string;
+      }>;
+    }
+
+    const formattedResponse: FormattedResponse = {
       created: Math.floor(Date.now() / 1000),
-      data: images.map((image: { url: any; }) => ({
+      data: images.map((image: Image) => ({
         url: image.url,
         revised_prompt: prompt
       }))

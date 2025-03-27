@@ -145,5 +145,5 @@ console.log('X-API-KEY:', request.headers.get('X-API-KEY'));
 }
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: ['/api/ai/:path*'],
 };
