@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/ai/openai/image/*.ts": {
+      "maxDuration": 60
+    },
+    "api/ai/gemini/image/*.ts": {
+      "maxDuration": 60
+    }
+  }
+}
