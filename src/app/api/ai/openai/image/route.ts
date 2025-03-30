@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
+import { getEnvVariable } from '@/lib/env';
 import { logUsage } from '@/lib/usage-logger';
 
 // Handle OPTIONS requests for CORS
@@ -20,66 +21,64 @@ export async function POST(req: NextRequest) {
   
   try {
     // Parse request body
-    // const { prompt, model = 'dall-e-3', n = 1, size = '1024x1024', quality = 'standard', style = 'vivid' } = await req.json();
-    const { prompt } = await req.json();
+    const { prompt, model = 'dall-e-3', n = 1, size = '1024x1024', quality = 'standard', style = 'vivid' } = await req.json();
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
     // Get OpenAI API key
-    // const openaiApiKey = getEnvVariable('OPENAI_API_KEY');
+    const openaiApiKey = getEnvVariable('OPENAI_API_KEY');
     
     // Call OpenAI API for image generation
-    return NextResponse.json({ message: 'Route is working correctly' });
-    // const response = await fetch('https://api.openai.com/v1/images/generations', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${openaiApiKey}`
-    //   },
-    //   body: JSON.stringify({
-    //     prompt,
-    //     model,
-    //     n,
-    //     size,
-    //     quality,
-    //     style,
-    //     response_format: 'url'
-    //   })
-    // });
+    const response = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openaiApiKey}`
+      },
+      body: JSON.stringify({
+        prompt,
+        model,
+        n,
+        size,
+        quality,
+        style,
+        response_format: 'url'
+      })
+    });
 
-    // const data = await response.json();
+    const data = await response.json();
 
-    // if (!response.ok) {
-    //   // Log error
-    //   logUsage({
-    //     timestamp: startTime,
-    //     provider: 'openai',
-    //     model: `${model}-image`,
-    //     success: false,
-    //     error: data.error?.message || 'Unknown error'
-    //   });
+    if (!response.ok) {
+      // Log error
+      logUsage({
+        timestamp: startTime,
+        provider: 'openai',
+        model: `${model}-image`,
+        success: false,
+        error: data.error?.message || 'Unknown error'
+      });
       
-    //   return NextResponse.json(
-    //     { error: data.error?.message || 'An error occurred with the OpenAI Image API' },
-    //     { status: response.status }
-    //   );
-    // }
+      return NextResponse.json(
+        { error: data.error?.message || 'An error occurred with the OpenAI Image API' },
+        { status: response.status }
+      );
+    }
 
-    // // Log successful usage
-    // logUsage({
-    //   timestamp: startTime,
-    //   provider: 'openai',
-    //   model: `${model}-image`,
-    //   success: true
-    // });
+    // Log successful usage
+    logUsage({
+      timestamp: startTime,
+      provider: 'openai',
+      model: `${model}-image`,
+      success: true
+    });
     
-    // // Add CORS headers to the response
-    // const nextResponse = NextResponse.json(data);
-    // nextResponse.headers.set('Access-Control-Allow-Origin', '*');
+    // Add CORS headers to the response
+    const nextResponse = NextResponse.json(data);
+    nextResponse.headers.set('Access-Control-Allow-Origin', '*');
     
-    // return nextResponse;
+    return nextResponse;
   } catch (error: any) {
     console.error('OpenAI Image API error:', error);
     
