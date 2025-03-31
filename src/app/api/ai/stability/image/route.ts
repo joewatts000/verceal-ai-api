@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import { getEnvVariable } from '@/lib/env';
 
@@ -17,8 +16,6 @@ export async function OPTIONS() {
 }
 
 export async function POST(req: NextRequest) {
-  const startTime = Date.now();
-  
   try {
     // Parse request body
     const { prompt, size = '1024x1024', n = 1, style = 'photographic' } = await req.json();
@@ -94,11 +91,13 @@ export async function POST(req: NextRequest) {
           const errorData = await response.json();
           errorMessage = errorData.message || errorMessage;
         } catch (e) {
+          console.log(e);
           // If JSON parsing fails, try to get the text
           try {
             const errorText = await response.text();
             if (errorText) errorMessage = errorText;
           } catch (e2) {
+          console.log(e2);
             // If that also fails, use the status text
           }
         }

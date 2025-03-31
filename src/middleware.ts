@@ -81,6 +81,7 @@ export function middleware(request: NextRequest) {
       openrouter: 'OPENROUTER_API_KEY',
       replicate: 'REPLICATE_API_KEY',
       gemini: 'GOOGLE_AI_API_KEY',
+      stability: 'STABILITY_API_KEY'
     };
 
     const envKey = keyMap[provider.toLowerCase()];
