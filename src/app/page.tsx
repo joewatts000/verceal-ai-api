@@ -48,6 +48,34 @@ export default function Home() {
   const [error, setError] = useState('')
   const [key, setKey] = useState('')
 
+  const handleStabilityImages = async () => {
+    setLoading(true);
+    setError('');
+    setResponse('');
+    try {
+      const res = await fetch(`/api/ai/stability/image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': key,
+        },
+        body: JSON.stringify({ prompt: ' an image of a shoe on a beach' }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to call Stability Images API');
+      }
+
+      setResponse(JSON.stringify(data, null, 2));
+    } catch (err: any) {
+      setError(err.message || 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleOpenAiImages = async () => {
     setLoading(true);
     setError('');
@@ -217,6 +245,11 @@ export default function Home() {
         <button onClick={handleOpenAiImages} className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50">
           Test image route openai
         </button>
+
+        <button onClick={handleStabilityImages} className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50">
+          Test image route stability
+        </button>
+
         {error && (
           <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
             <p className="font-medium">Error</p>
