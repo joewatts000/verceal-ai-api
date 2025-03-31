@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { getEnvVariable } from '@/lib/env';
-import { logUsage } from '@/lib/usage-logger';
 
 // Handle OPTIONS requests for CORS
 export async function OPTIONS() {
@@ -16,9 +15,7 @@ export async function OPTIONS() {
   });
 }
 
-export async function POST(req: NextRequest) {
-  const startTime = Date.now();
-  
+export async function POST(req: NextRequest) {  
   try {
     // Parse request body
     const { prompt, model = 'dall-e-3', n = 1, size = '1024x1024', quality = 'standard', style = 'vivid' } = await req.json();
@@ -50,29 +47,12 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json();
 
-    if (!response.ok) {
-      // Log error
-      logUsage({
-        timestamp: startTime,
-        provider: 'openai',
-        model: `${model}-image`,
-        success: false,
-        error: data.error?.message || 'Unknown error'
-      });
-      
+    if (!response.ok) {      
       return NextResponse.json(
         { error: data.error?.message || 'An error occurred with the OpenAI Image API' },
         { status: response.status }
       );
     }
-
-    // Log successful usage
-    logUsage({
-      timestamp: startTime,
-      provider: 'openai',
-      model: `${model}-image`,
-      success: true
-    });
     
     // Add CORS headers to the response
     const nextResponse = NextResponse.json(data);
@@ -81,15 +61,6 @@ export async function POST(req: NextRequest) {
     return nextResponse;
   } catch (error: any) {
     console.error('OpenAI Image API error:', error);
-    
-    // Log error
-    logUsage({
-      timestamp: startTime,
-      provider: 'openai',
-      model: 'image-generation',
-      success: false,
-      error: error.message || 'Unknown error'
-    });
     
     // Add CORS headers to the error response
     const errorResponse = NextResponse.json(

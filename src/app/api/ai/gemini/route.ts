@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { getEnvVariable } from '@/lib/env';
-import { logUsage } from '@/lib/usage-logger';
 
 export async function POST(req: NextRequest) {
-  const startTime = Date.now();
-  
   try {
     const { prompt, model, stream = false, systemPrompt, options = {} } = await req.json();
 
@@ -47,15 +44,6 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const errorData = await response.json();
       
-      // Log error
-      logUsage({
-        timestamp: startTime,
-        provider: 'gemini',
-        model,
-        success: false,
-        error: errorData.error?.message || 'Unknown error'
-      });
-      
       return NextResponse.json(
         { error: errorData.error?.message || 'An error occurred with the Gemini API' },
         { status: response.status }
@@ -63,14 +51,6 @@ export async function POST(req: NextRequest) {
     }
 
     if (stream) {
-      // Log usage
-      logUsage({
-        timestamp: startTime,
-        provider: 'gemini',
-        model,
-        success: true
-      });
-      
       return new Response(response.body, {
         headers: {
           'Content-Type': 'text/event-stream',
@@ -86,15 +66,6 @@ export async function POST(req: NextRequest) {
       const finishReason = data.candidates?.[0]?.finishReason || '';
       const usage = data.usageMetadata || {};
       
-      // Log usage
-      logUsage({
-        timestamp: startTime,
-        provider: 'gemini',
-        model,
-        tokensUsed: usage.totalTokenCount,
-        success: true
-      });
-      
       return NextResponse.json({
         text,
         finishReason,
@@ -103,15 +74,6 @@ export async function POST(req: NextRequest) {
     }
   } catch (error: any) {
     console.error('Gemini API error:', error);
-    
-    // Log error
-    logUsage({
-      timestamp: startTime,
-      provider: 'gemini',
-      model: 'unknown',
-      success: false,
-      error: error.message || 'Unknown error'
-    });
     
     return NextResponse.json(
       { error: error.message || 'An error occurred with the Gemini API' },

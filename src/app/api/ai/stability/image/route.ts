@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import { getEnvVariable } from '@/lib/env';
-import { logUsage } from '@/lib/usage-logger';
 
 // Handle OPTIONS requests for CORS
 export async function OPTIONS() {
@@ -106,15 +105,6 @@ export async function POST(req: NextRequest) {
         
         console.error('Stability AI API error:', errorMessage);
         
-        // Log error
-        logUsage({
-          timestamp: startTime,
-          provider: 'stability',
-          model: 'stable-diffusion-xl',
-          success: false,
-          error: errorMessage
-        });
-        
         return new NextResponse(
           JSON.stringify({ error: errorMessage }),
           { 
@@ -144,15 +134,6 @@ export async function POST(req: NextRequest) {
       if (images.length === 0) {
         throw new Error('No images were generated');
       }
-
-      // Log successful usage
-      logUsage({
-        timestamp: startTime,
-        provider: 'stability',
-        model: 'stable-diffusion-xl',
-        success: true
-      });
-      
       // Format the response to match OpenAI's format for consistency
       interface ImageData {
         url: string;
@@ -186,15 +167,6 @@ export async function POST(req: NextRequest) {
       clearTimeout(timeoutId);
       
       if (fetchError.name === 'AbortError') {
-        // Handle timeout
-        logUsage({
-          timestamp: startTime,
-          provider: 'stability',
-          model: 'stable-diffusion-xl',
-          success: false,
-          error: 'Request timed out'
-        });
-        
         return new NextResponse(
           JSON.stringify({ error: 'Request timed out. Image generation is taking too long.' }),
           { 
@@ -211,16 +183,6 @@ export async function POST(req: NextRequest) {
     }
   } catch (error: any) {
     console.error('Stability AI Image API error:', error);
-    
-    // Log error
-    logUsage({
-      timestamp: startTime,
-      provider: 'stability',
-      model: 'stable-diffusion-xl',
-      success: false,
-      error: error.message || 'Unknown error'
-    });
-    
     // Return error with proper headers
     return new NextResponse(
       JSON.stringify({ error: error.message || 'An error occurred with the Stability AI Image API' }),

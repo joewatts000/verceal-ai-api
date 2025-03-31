@@ -4,7 +4,6 @@ import type { NextRequest } from 'next/server';
 import { corsMiddleware } from './lib/cors';
 
 export function middleware(request: NextRequest) {
-  // console.log(request);
   // Handle preflight OPTIONS requests immediately
   if (request.method === 'OPTIONS') {
     const response = new NextResponse(null, { status: 204 }); // No content
@@ -34,14 +33,6 @@ export function middleware(request: NextRequest) {
   const apiKey = request.headers.get('X-API-Key');
   const validApiKey = process.env.E2_AI_API_ACCESS_KEY;
 
-  console.log(`apikey: ${apiKey}`);
-
-  // In your middleware
-console.log('x-api-key:', request.headers.get('x-api-key'));
-console.log('X-API-Key:', request.headers.get('X-API-Key'));
-console.log('X-Api-Key:', request.headers.get('X-Api-Key'));
-console.log('x-API-key:', request.headers.get('x-API-key'));
-console.log('X-API-KEY:', request.headers.get('X-API-KEY'));
 
   if (!validApiKey) {
     const errorResponse = NextResponse.json(

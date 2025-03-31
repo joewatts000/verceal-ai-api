@@ -2,7 +2,6 @@
 import { openai } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
-import { logUsage } from '@/lib/usage-logger';
 
 // Helper function to add CORS headers to a response
 function addCorsHeaders(response: NextResponse, request: NextRequest) {
@@ -22,9 +21,7 @@ export async function OPTIONS(request: NextRequest) {
   return response;
 }
 
-export async function POST(req: NextRequest) {
-  const startTime = Date.now();
-  
+export async function POST(req: NextRequest) {  
   try {
     const { prompt, model, stream = false, systemPrompt, options = {} } = await req.json();
 
@@ -52,14 +49,6 @@ export async function POST(req: NextRequest) {
         ...options
       });
 
-      // Log usage
-      logUsage({
-        timestamp: startTime,
-        provider: 'openai',
-        model,
-        success: true
-      });
-
       const streamResponse = result.toDataStreamResponse();
       
       // Add CORS headers to the stream response
@@ -76,15 +65,6 @@ export async function POST(req: NextRequest) {
         ...options
       });
 
-      // Log usage
-      logUsage({
-        timestamp: startTime,
-        provider: 'openai',
-        model,
-        tokensUsed: result.usage?.totalTokens,
-        success: true
-      });
-
       return addCorsHeaders(
         NextResponse.json(result),
         req
@@ -92,15 +72,6 @@ export async function POST(req: NextRequest) {
     }
   } catch (error: any) {
     console.error('OpenAI API error:', error);
-    
-    // Log error
-    logUsage({
-      timestamp: startTime,
-      provider: 'openai',
-      model: 'unknown',
-      success: false,
-      error: error.message
-    });
     
     return addCorsHeaders(
       NextResponse.json(
