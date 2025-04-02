@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { getEnvVariable } from '@/lib/env';
+import { uploadToCloudinary } from '@/lib/cloudinary-upload';
 
 // Handle OPTIONS requests for CORS
 export async function OPTIONS() {
@@ -53,9 +54,11 @@ export async function POST(req: NextRequest) {
         { status: response.status }
       );
     }
+
+    const returnData = await uploadToCloudinary(data);
     
     // Add CORS headers to the response
-    const nextResponse = NextResponse.json(data);
+    const nextResponse = NextResponse.json(returnData);
     nextResponse.headers.set('Access-Control-Allow-Origin', '*');
     
     return nextResponse;

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { getEnvVariable } from '@/lib/env';
+import { uploadToCloudinary } from '@/lib/cloudinary-upload';
 
 // Handle OPTIONS requests for CORS
 export async function OPTIONS() {
@@ -133,27 +134,17 @@ export async function POST(req: NextRequest) {
       if (images.length === 0) {
         throw new Error('No images were generated');
       }
-      // Format the response to match OpenAI's format for consistency
-      interface ImageData {
-        url: string;
-        revised_prompt: string;
-      }
 
-      interface FormattedResponse {
-        created: number;
-        data: ImageData[];
-      }
-
-      const formattedResponse: FormattedResponse = {
-        created: Math.floor(Date.now() / 1000),
-        data: images.map((image: { url: string }) => ({
-          url: image.url,
-          revised_prompt: prompt
-        }))
-      };
+      const returnData = await uploadToCloudinary({
+        data: [
+          {
+            url: images[0].url
+          }
+        ]
+      });
       
       return new NextResponse(
-        JSON.stringify(formattedResponse),
+        JSON.stringify(returnData),
         { 
           status: 200,
           headers: {
