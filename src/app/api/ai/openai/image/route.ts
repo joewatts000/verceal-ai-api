@@ -2,6 +2,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEnvVariable } from '@/lib/env';
 import { uploadToCloudinary } from '@/lib/cloudinary-upload';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+// Initialize Upstash Redis and Rate Limiter
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(1, '60 s'), // 10 requests per 60 seconds
+  analytics: true,
+});
 
 // Handle OPTIONS requests for CORS
 export async function OPTIONS() {
@@ -18,6 +32,19 @@ export async function OPTIONS() {
 
 export async function POST(req: NextRequest) {  
   try {
+    // Extract IP address for rate limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+
+    // Check the rate limit
+    const { success } = await ratelimit.limit(ip);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: { 'Access-Control-Allow-Origin': '*' } }
+      );
+    }
+
     // Parse request body
     const { prompt, model = 'dall-e-3', n = 1, size = '1024x1024', quality = 'standard', style = 'vivid' } = await req.json();
 
@@ -51,7 +78,7 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {      
       return NextResponse.json(
         { error: data.error?.message || 'An error occurred with the OpenAI Image API' },
-        { status: response.status }
+        { status: response.status, headers: { 'Access-Control-Allow-Origin': '*' } }
       );
     }
 
@@ -65,13 +92,9 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('OpenAI Image API error:', error);
     
-    // Add CORS headers to the error response
-    const errorResponse = NextResponse.json(
+    return NextResponse.json(
       { error: error.message || 'An error occurred with the OpenAI Image API' },
-      { status: 500 }
+      { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
     );
-    errorResponse.headers.set('Access-Control-Allow-Origin', '*');
-    
-    return errorResponse;
   }
 }

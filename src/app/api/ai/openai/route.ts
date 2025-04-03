@@ -2,6 +2,20 @@
 import { openai } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+// Initialize Upstash Redis and Rate Limiter
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(1, '60 s'), // 50 requests per 60 seconds
+  analytics: true,
+});
 
 // Helper function to add CORS headers to a response
 function addCorsHeaders(response: NextResponse, request: NextRequest) {
@@ -23,6 +37,22 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function POST(req: NextRequest) {  
   try {
+    // Extract IP address for rate limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+
+    // Check the rate limit
+    const { success } = await ratelimit.limit(ip);
+
+    if (!success) {
+      return addCorsHeaders(
+        NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          { status: 429 }
+        ),
+        req
+      );
+    }
+
     const { prompt, model, stream = false, systemPrompt, options = {} } = await req.json();
 
     if (!prompt) {

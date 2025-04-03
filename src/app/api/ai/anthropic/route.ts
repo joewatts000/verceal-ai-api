@@ -2,9 +2,38 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { generateText, streamText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+// Initialize Upstash Redis and Rate Limiter
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(1, '60 s'), // 20 requests per 60 seconds
+  analytics: true,
+});
 
 export async function POST(req: NextRequest) {
   try {
+    // Extract IP address for rate limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+
+    // Check the rate limit
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { success, pending, limit, reset, remaining } = await ratelimit.limit(ip);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
+    // Parse the request body
     const { prompt, model, stream = false, systemPrompt, options = {} } = await req.json();
 
     if (!prompt) {
@@ -22,18 +51,18 @@ export async function POST(req: NextRequest) {
         model: anthropicModel,
         prompt,
         system: systemPrompt,
-        ...options
+        ...options,
       });
 
       return result.toDataStreamResponse({
-        sendReasoning: true // Enable sending reasoning tokens for Claude models
+        sendReasoning: true, // Enable sending reasoning tokens for Claude models
       });
     } else {
       const result = await generateText({
         model: anthropicModel,
         prompt,
         system: systemPrompt,
-        ...options
+        ...options,
       });
 
       return NextResponse.json(result);
