@@ -4,6 +4,7 @@ import { generateText, streamText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { formatTimeUntilReset } from '@/lib/formatTimeUntilReset';
 
 // Initialize Upstash Redis and Rate Limiter
 const redis = new Redis({
@@ -13,7 +14,7 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(1, '60 s'), // 20 requests per 60 seconds
+  limiter: Ratelimit.slidingWindow(10, '24 h'),
   analytics: true,
 });
 
@@ -23,12 +24,18 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
 
     // Check the rate limit
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { success, pending, limit, reset, remaining } = await ratelimit.limit(ip);
-
+     
+    const { success, reset, remaining } = await ratelimit.limit(ip);
+    
     if (!success) {
+      // Calculate time until reset in milliseconds
+      const now = Date.now();
+      const timeUntilReset = reset - now;
+      // Format the wait time in a human-readable format
+      const waitTimeStr = formatTimeUntilReset(timeUntilReset);
+      console.log(waitTimeStr);
       return NextResponse.json(
-        { error: 'Too many requests', remaining },
+        { error: 'Too many requests', remaining, reset: waitTimeStr },
         { status: 429 }
       );
     }
