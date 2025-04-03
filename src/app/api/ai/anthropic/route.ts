@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     if (!success) {
       return NextResponse.json(
-        { error: 'Too many requests' },
+        { error: 'Too many requests', remaining },
         { status: 429 }
       );
     }

@@ -41,12 +41,12 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
 
     // Check the rate limit
-    const { success } = await ratelimit.limit(ip);
+    const { success, remaining } = await ratelimit.limit(ip);
 
     if (!success) {
       return addCorsHeaders(
         NextResponse.json(
-          { error: 'Too many requests' },
+          { error: 'Too many requests', remaining },
           { status: 429 }
         ),
         req
