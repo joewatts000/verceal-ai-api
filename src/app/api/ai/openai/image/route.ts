@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     if (!success) {
       return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
+        { error: 'Too many requests' },
         { status: 429, headers: { 'Access-Control-Allow-Origin': '*' } }
       );
     }

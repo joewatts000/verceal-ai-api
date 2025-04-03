@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     if (!success) {
       return addCorsHeaders(
         NextResponse.json(
-          { error: 'Too many requests. Please try again later.' },
+          { error: 'Too many requests' },
           { status: 429 }
         ),
         req
