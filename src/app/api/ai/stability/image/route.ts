@@ -17,6 +17,11 @@ export async function OPTIONS() {
 }
 
 export async function POST(req: NextRequest) {
+  // TODO: reanable if needed
+  return NextResponse.json(
+    { error: 'This API route is temporarily disabled.' },
+    { status: 503 }
+  );
   try {
     // Parse request body
     const { prompt, size = '1024x1024', n = 1, style = 'photographic' } = await req.json();

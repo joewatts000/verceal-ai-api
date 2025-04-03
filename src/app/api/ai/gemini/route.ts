@@ -3,6 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getEnvVariable } from '@/lib/env';
 
 export async function POST(req: NextRequest) {
+  // TODO: reanable if needed
+  return NextResponse.json(
+    { error: 'This API route is temporarily disabled.' },
+    { status: 503 }
+  );
+
   try {
     const { prompt, model, stream = false, systemPrompt, options = {} } = await req.json();
 
