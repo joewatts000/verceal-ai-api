@@ -6,7 +6,6 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { formatTimeUntilReset } from '@/lib/formatTimeUntilReset';
 
-// Initialize Upstash Redis and Rate Limiter
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
@@ -14,54 +13,42 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(10, '24 h'), // 10 requests per 60 seconds
+  limiter: Ratelimit.slidingWindow(10, '24 h'),
   analytics: true,
 });
 
-// Handle OPTIONS requests for CORS
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
-      'Access-Control-Max-Age': '86400',
-    },
-  });
-}
+// export async function OPTIONS() {
+//   return new NextResponse(null, {
+//     status: 204,
+//     headers: {
+//       'Access-Control-Allow-Origin': '*',
+//       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+//       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+//       'Access-Control-Max-Age': '86400',
+//     },
+//   });
+// }
 
 export async function POST(req: NextRequest) {  
   try {
-    // Extract IP address for rate limiting
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-
-    // Check the rate limit
     const { success, reset } = await ratelimit.limit(ip);
 
     if (!success) {
-      // Calculate time until reset in milliseconds
       const now = Date.now();
       const timeUntilReset = reset - now;
-      // Format the wait time in a human-readable format
       const waitTimeStr = formatTimeUntilReset(timeUntilReset);
       return NextResponse.json(
-        { error: 'Too many requests', remaining: waitTimeStr },
+        { error: 'Too many requests', resetsIn: waitTimeStr },
         { status: 429, headers: { 'Access-Control-Allow-Origin': '*' } }
       );
     }
 
-    // Parse request body
     const { prompt, model = 'dall-e-3', n = 1, size = '1024x1024', quality = 'standard', style = 'vivid' } = await req.json();
-
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
-
-    // Get OpenAI API key
     const openaiApiKey = getEnvVariable('OPENAI_API_KEY');
-    
-    // Call OpenAI API for image generation
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -89,11 +76,8 @@ export async function POST(req: NextRequest) {
     }
 
     const returnData = await uploadToCloudinary(data);
-    
-    // Add CORS headers to the response
     const nextResponse = NextResponse.json(returnData);
     nextResponse.headers.set('Access-Control-Allow-Origin', '*');
-    
     return nextResponse;
   } catch (error: any) {
     console.error('OpenAI Image API error:', error);

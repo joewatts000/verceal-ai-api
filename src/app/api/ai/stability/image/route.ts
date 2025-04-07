@@ -4,17 +4,17 @@ import { getEnvVariable } from '@/lib/env';
 import { uploadToCloudinary } from '@/lib/cloudinary-upload';
 
 // Handle OPTIONS requests for CORS
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
-      'Access-Control-Max-Age': '86400',
-    },
-  });
-}
+// export async function OPTIONS() {
+//   return new NextResponse(null, {
+//     status: 204,
+//     headers: {
+//       'Access-Control-Allow-Origin': '*',
+//       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+//       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+//       'Access-Control-Max-Age': '86400',
+//     },
+//   });
+// }
 
 export async function POST(req: NextRequest) {
   // TODO: reanable if needed
