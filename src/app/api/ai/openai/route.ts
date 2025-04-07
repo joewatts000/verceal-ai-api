@@ -17,22 +17,22 @@ const ratelimit = new Ratelimit({
   analytics: true,
 });
 
-// function addCorsHeaders(response: NextResponse, request: NextRequest) {
-//   const origin = request.headers.get('origin') || '*';
-//   response.headers.set('Access-Control-Allow-Origin', origin);
-//   response.headers.set('Access-Control-Allow-Credentials', 'true');
-//   return response;
-// }
+function addCorsHeaders(response: NextResponse, request: NextRequest) {
+  const origin = request.headers.get('origin') || '*';
+  response.headers.set('Access-Control-Allow-Origin', origin);
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  return response;
+}
 
-// export async function OPTIONS(request: NextRequest) {
-//   const response = new NextResponse(null, { status: 204 });
-//   response.headers.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
-//   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-//   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
-//   response.headers.set('Access-Control-Max-Age', '86400');
-//   response.headers.set('Access-Control-Allow-Credentials', 'true');
-//   return response;
-// }
+export async function OPTIONS(request: NextRequest) {
+  const response = new NextResponse(null, { status: 204 });
+  response.headers.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
+  response.headers.set('Access-Control-Max-Age', '86400');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  return response;
+}
 
 export async function POST(req: NextRequest) {  
   try {
@@ -43,35 +43,29 @@ export async function POST(req: NextRequest) {
       const now = Date.now();
       const timeUntilReset = reset - now;
       const waitTimeStr = formatTimeUntilReset(timeUntilReset);
-      return NextResponse.json(
-        { error: 'Too many requests', resetsIn: waitTimeStr },
-        { status: 429 }
+      return addCorsHeaders(
+        NextResponse.json(
+          { error: 'Too many requests', resetsIn: waitTimeStr },
+          { status: 429 }
+        ),
+        req
       );
-      // return addCorsHeaders(
-      //   NextResponse.json(
-      //     { error: 'Too many requests', resetsIn: waitTimeStr },
-      //     { status: 429 }
-      //   ),
-      //   req
-      // );
     }
 
     const { prompt, model, stream = false, systemPrompt, options = {} } = await req.json();
 
     if (!prompt) {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
-      // return addCorsHeaders(
-      //   NextResponse.json({ error: 'Prompt is required' }, { status: 400 }),
-      //   req
-      // );
+      return addCorsHeaders(
+        NextResponse.json({ error: 'Prompt is required' }, { status: 400 }),
+        req
+      );
     }
 
     if (!model) {
-      return NextResponse.json({ error: 'Model is required' }, { status: 400 });
-      // return addCorsHeaders(
-      //   NextResponse.json({ error: 'Model is required' }, { status: 400 }),
-      //   req
-      // );
+      return addCorsHeaders(
+        NextResponse.json({ error: 'Model is required' }, { status: 400 }),
+        req
+      );
     }
 
     const openaiModel = openai(model);
@@ -85,9 +79,9 @@ export async function POST(req: NextRequest) {
       });
 
       const streamResponse = result.toDataStreamResponse();
-      // const origin = req.headers.get('origin') || '*';
-      // streamResponse.headers.set('Access-Control-Allow-Origin', origin);
-      // streamResponse.headers.set('Access-Control-Allow-Credentials', 'true');
+      const origin = req.headers.get('origin') || '*';
+      streamResponse.headers.set('Access-Control-Allow-Origin', origin);
+      streamResponse.headers.set('Access-Control-Allow-Credentials', 'true');
       
       return streamResponse;
     } else {
@@ -97,24 +91,21 @@ export async function POST(req: NextRequest) {
         system: systemPrompt,
         ...options
       });
-      NextResponse.json(result)
-      // return addCorsHeaders(
-      //   NextResponse.json(result),
-      //   req
-      // );
+
+      return addCorsHeaders(
+        NextResponse.json(result),
+        req
+      );
     }
   } catch (error: any) {
     console.error('OpenAI API error:', error);
-    NextResponse.json(
-      { error: error.message || 'An error occurred with the OpenAI API' },
-      { status: 500 }
+    
+    return addCorsHeaders(
+      NextResponse.json(
+        { error: error.message || 'An error occurred with the OpenAI API' },
+        { status: 500 }
+      ),
+      req
     );
-    // return addCorsHeaders(
-    //   NextResponse.json(
-    //     { error: error.message || 'An error occurred with the OpenAI API' },
-    //     { status: 500 }
-    //   ),
-    //   req
-    // );
   }
 }
