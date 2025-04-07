@@ -34,6 +34,8 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
     const { success, reset } = await ratelimit.limit(ip);
 
+    
+
     if (!success) {
       const now = Date.now();
       const timeUntilReset = reset - now;
