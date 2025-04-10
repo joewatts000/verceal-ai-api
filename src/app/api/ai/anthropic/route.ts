@@ -13,19 +13,19 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(10, '24 h'),
+  limiter: Ratelimit.fixedWindow(2, '24 h'),
   analytics: true,
 });
 
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-    const { success, reset } = await ratelimit.limit(`${ip}-anthropic-text`);
+    const { success, reset, remaining } = await ratelimit.limit(`${ip}-anthropic-text`);
     
     if (!success) {
       const waitTimeStr = formatTimeUntilReset(reset);
       return NextResponse.json(
-        { error: 'Too many requests', resetsIn: waitTimeStr },
+        { error: 'Too many requests', reset, resetsIn: waitTimeStr, remaining},
         { status: 429 }
       );
     }
