@@ -13,28 +13,14 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(10, '24 h'),
+  limiter: Ratelimit.fixedWindow(10, '24 h'),
   analytics: true,
 });
-
-// export async function OPTIONS() {
-//   return new NextResponse(null, {
-//     status: 204,
-//     headers: {
-//       'Access-Control-Allow-Origin': '*',
-//       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-//       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
-//       'Access-Control-Max-Age': '86400',
-//     },
-//   });
-// }
 
 export async function POST(req: NextRequest) {  
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-    const { success, reset } = await ratelimit.limit(ip);
-
-    
+    const { success, reset } = await ratelimit.limit(`${ip}-openai-image`);
 
     if (!success) {
       const now = Date.now();

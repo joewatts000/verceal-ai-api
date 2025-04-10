@@ -13,14 +13,14 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(10, '24 h'),
+  limiter: Ratelimit.fixedWindow(10, '24 h'),
   analytics: true,
 });
 
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-    const { success, reset } = await ratelimit.limit(ip);
+    const { success, reset } = await ratelimit.limit(`${ip}-anthropic-text`);
     
     if (!success) {
       const now = Date.now();
