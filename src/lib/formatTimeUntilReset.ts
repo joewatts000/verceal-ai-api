@@ -5,22 +5,20 @@ interface TimeUntilResetFormatter {
 export const formatTimeUntilReset: TimeUntilResetFormatter = function (reset) {
   const now = Date.now();
   const timeUntilReset = (reset * 1000) - now;
-  if (timeUntilReset <= 0) {
-    return 'now';
-  }
 
-  const seconds = Math.floor(timeUntilReset / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
+  if (timeUntilReset <= 0) return 'now';
 
-  if (days > 0) {
-    return `in ${days} day${days > 1 ? 's' : ''}`;
-  } else if (hours > 0) {
-    return `in ${hours} hour${hours > 1 ? 's' : ''}`;
-  } else if (minutes > 0) {
-    return `in ${minutes} minute${minutes > 1 ? 's' : ''}`;
-  } else {
-    return `in ${seconds} second${seconds > 1 ? 's' : ''}`;
-  }
+  const totalSeconds = Math.floor(timeUntilReset / 1000);
+  const days = Math.floor(totalSeconds / (3600 * 24));
+  const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  let result = 'in ';
+  if (days > 0) result += `${days}d `;
+  if (hours > 0 || days > 0) result += `${hours}h `;
+  if (minutes > 0 || hours > 0 || days > 0) result += `${minutes}m`;
+  else result += `${seconds}s`;
+
+  return result.trim();
 };
