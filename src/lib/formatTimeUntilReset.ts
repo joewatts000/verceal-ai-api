@@ -4,7 +4,7 @@ interface TimeUntilResetFormatter {
 
 export const formatTimeUntilReset: TimeUntilResetFormatter = function (reset) {
   const now = Date.now();
-  const timeUntilReset = (reset * 1000) - now;
+  const timeUntilReset = reset - now;
 
   if (timeUntilReset <= 0) return 'now';
 
