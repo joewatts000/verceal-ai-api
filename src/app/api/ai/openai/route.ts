@@ -31,12 +31,12 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(req: NextRequest) {  
   try {
     const rateLimiter = createSlidingWindowRateLimiter(redis, 20, '24 h');
-        const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-        const key = `${ipAddress}-openai-text`;
-        const { success, reset, remaining } = await rateLimiter.limit(key);
+    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const key = `${ipAddress}-openai-text`;
+    const { success, reset, remaining } = await rateLimiter.limit(key);
+    const waitTimeStr = formatTimeUntilReset(reset);
 
     if (!success) {
-      const waitTimeStr = formatTimeUntilReset(reset);
       return addCorsHeaders(
         NextResponse.json(
           { error: 'Too many requests', reset, resetsIn: waitTimeStr, remaining},
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       });
 
       return addCorsHeaders(
-        NextResponse.json(result),
+        NextResponse.json({ ...result, reset, resetsIn: waitTimeStr, remaining}),
         req
       );
     }

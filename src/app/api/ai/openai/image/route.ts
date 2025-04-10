@@ -17,9 +17,9 @@ export async function POST(req: NextRequest) {
     const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
     const key = `${ipAddress}-openai-image`;
     const { success, reset, remaining } = await rateLimiter.limit(key);
+    const waitTimeStr = formatTimeUntilReset(reset);
 
     if (!success) {
-      const waitTimeStr = formatTimeUntilReset(reset);
       return NextResponse.json(
         { error: 'Too many requests', resetsIn: waitTimeStr, reset, remaining },
         { status: 429, headers: { 'Access-Control-Allow-Origin': '*' } }
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     }
 
     const returnData = await uploadToCloudinary(data);
-    const nextResponse = NextResponse.json(returnData);
+    const nextResponse = NextResponse.json({ ...returnData, remaining, reset, resetsIn: waitTimeStr });
     nextResponse.headers.set('Access-Control-Allow-Origin', '*');
     return nextResponse;
   } catch (error: any) {
