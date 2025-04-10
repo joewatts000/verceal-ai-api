@@ -17,11 +17,11 @@ export async function POST(req: NextRequest) {
     const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
     const key = `${ipAddress}-anthropic-text`;
     const { success, reset, remaining } = await rateLimiter.limit(key);
+    const waitTimeStr = formatTimeUntilReset(reset);
     
     if (!success) {
-      const waitTimeStr = formatTimeUntilReset(reset);
       return NextResponse.json(
-        { error: 'Too many requests', reset, resetsIn: waitTimeStr, remaining},
+        { error: 'Too many requests', reset, resetsIn: waitTimeStr, remaining },
         { status: 429 }
       );
     }
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         ...options,
       });
 
-      return NextResponse.json({ ...result, remaining, reset });
+      return NextResponse.json({ ...result, remaining, reset, resetsIn: waitTimeStr });
     }
   } catch (error: any) {
     console.error('Anthropic API error:', error);
