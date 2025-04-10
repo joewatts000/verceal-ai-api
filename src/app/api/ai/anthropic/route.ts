@@ -19,8 +19,12 @@ const ratelimit = new Ratelimit({
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-    const { success, reset, remaining } = await ratelimit.limit(`${ip}-anthropic-text`);
+    // const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    // const { success, reset, remaining } = await ratelimit.limit(`${ip}-anthropic-text`);
+
+    const testKey = `ratelimit-test-${Date.now()}`;
+    const { success, reset, remaining } = await ratelimit.limit(testKey);
+    // console.log('reset from fresh key:', new Date(reset).toISOString());
     
     if (!success) {
       const waitTimeStr = formatTimeUntilReset(reset);
