@@ -2,30 +2,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEnvVariable } from '@/lib/env';
 import { uploadToCloudinary } from '@/lib/cloudinary-upload';
-import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { formatTimeUntilReset } from '@/lib/formatTimeUntilReset';
+import { createSlidingWindowRateLimiter } from '@/lib/rateLimiter';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-const ratelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.fixedWindow(10, '24 h'),
-  analytics: true,
-});
-
 export async function POST(req: NextRequest) {  
   try {
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-    const { success, reset } = await ratelimit.limit(`${ip}-openai-image`);
+    const rateLimiter = createSlidingWindowRateLimiter(redis, 10, '24 h');
+    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const key = `${ipAddress}-openai-image`;
+    const { success, reset, remaining } = await rateLimiter.limit(key);
 
     if (!success) {
       const waitTimeStr = formatTimeUntilReset(reset);
       return NextResponse.json(
-        { error: 'Too many requests', resetsIn: waitTimeStr },
+        { error: 'Too many requests', resetsIn: waitTimeStr, reset, remaining },
         { status: 429, headers: { 'Access-Control-Allow-Origin': '*' } }
       );
     }

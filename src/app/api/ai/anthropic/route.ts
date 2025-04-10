@@ -2,29 +2,21 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { generateText, streamText } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
-import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { formatTimeUntilReset } from '@/lib/formatTimeUntilReset';
+import { createSlidingWindowRateLimiter } from '@/lib/rateLimiter';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-const ratelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(2, '24 h'),
-  analytics: true,
-});
-
 export async function POST(req: NextRequest) {
   try {
-    // const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-    // const { success, reset, remaining } = await ratelimit.limit(`${ip}-anthropic-text`);
-
-    const testKey = `ratelimit-test-${Date.now()}`;
-    const { success, reset, remaining } = await ratelimit.limit(testKey);
-    // console.log('reset from fresh key:', new Date(reset).toISOString());
+    const rateLimiter = createSlidingWindowRateLimiter(redis, 20, '24 h');
+    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const key = `${ipAddress}-anthropic-text`;
+    const { success, reset, remaining } = await rateLimiter.limit(key);
     
     if (!success) {
       const waitTimeStr = formatTimeUntilReset(reset);
