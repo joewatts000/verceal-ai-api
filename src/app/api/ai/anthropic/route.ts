@@ -61,12 +61,12 @@ export async function POST(req: NextRequest) {
         ...options,
       });
 
-      return NextResponse.json(result);
+      return NextResponse.json({ ...result, remaining, reset });
     }
   } catch (error: any) {
     console.error('Anthropic API error:', error);
     return NextResponse.json(
-      { error: error.message || 'An error occurred with the Anthropic API' },
+      { error: error.message || 'An error occurred with the Anthropic API', },
       { status: 500 }
     );
   }
