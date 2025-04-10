@@ -23,9 +23,7 @@ export async function POST(req: NextRequest) {
     const { success, reset } = await ratelimit.limit(`${ip}-anthropic-text`);
     
     if (!success) {
-      const now = Date.now();
-      const timeUntilReset = reset - now;
-      const waitTimeStr = formatTimeUntilReset(timeUntilReset);
+      const waitTimeStr = formatTimeUntilReset(reset);
       return NextResponse.json(
         { error: 'Too many requests', resetsIn: waitTimeStr },
         { status: 429 }

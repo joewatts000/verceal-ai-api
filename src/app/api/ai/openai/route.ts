@@ -13,7 +13,7 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(10, '24 h'),
+  limiter: Ratelimit.fixedWindow(20, '24 h'),
   analytics: true,
 });
 
@@ -37,15 +37,13 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(req: NextRequest) {  
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-    const { success, reset } = await ratelimit.limit(`${ip}-openai-text`);
+    const { success, reset, remaining } = await ratelimit.limit(`${ip}-openai-text`);
 
     if (!success) {
-      const now = Date.now();
-      const timeUntilReset = reset - now;
-      const waitTimeStr = formatTimeUntilReset(timeUntilReset);
+      const waitTimeStr = formatTimeUntilReset(reset);
       return addCorsHeaders(
         NextResponse.json(
-          { error: 'Too many requests', resetsIn: waitTimeStr },
+          { error: 'Too many requests', reset, resetsIn: waitTimeStr, remaining},
           { status: 429 }
         ),
         req

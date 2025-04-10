@@ -2,12 +2,14 @@ interface TimeUntilResetFormatter {
   (milliseconds: number): string;
 }
 
-export const formatTimeUntilReset: TimeUntilResetFormatter = function (milliseconds) {
-  if (milliseconds <= 0) {
+export const formatTimeUntilReset: TimeUntilResetFormatter = function (reset) {
+  const now = Date.now();
+  const timeUntilReset = (reset * 1000) - now;
+  if (timeUntilReset <= 0) {
     return 'now';
   }
 
-  const seconds = Math.floor(milliseconds / 1000);
+  const seconds = Math.floor(timeUntilReset / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
