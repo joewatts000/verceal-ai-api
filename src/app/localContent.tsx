@@ -106,6 +106,33 @@ export default function LocalContent() {
     }
   };
 
+  const checkQuota = async () => {
+    setLoading(true);
+    setError('');
+    setResponse('');
+    try {
+      const res = await fetch(`/api/ai/ratelimit`, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': key,
+        },
+      });
+
+
+      if (!res.ok) {
+        throw new Error(`Error: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      setResponse(JSON.stringify(data, null, 2));
+    } catch (err: any) {
+      setError(err.message || 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -253,6 +280,12 @@ export default function LocalContent() {
         <button onClick={handleStabilityImages} className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50">
           Test image route stability
         </button>
+        <div className='mb-8' />
+
+        <button onClick={checkQuota} className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50">
+          Check quota
+        </button>
+        <div className='mb-8' />
 
         {error && (
           <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">

@@ -1,6 +1,7 @@
-// api/ai/quota/route.ts
+// api/ai/ratelimit/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
+import { formatTimeUntilReset } from '@/lib/formatTimeUntilReset';
 
 // Initialize Redis client
 const redis = new Redis({
@@ -8,54 +9,65 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-// Define the quota limits for each service
-const QUOTA_LIMITS = {
-  'openai-text': 10,
-  'openai-image': 10,
-  'anthropic-text': 20,
+// Define the services and their daily limits
+const SERVICE_LIMITS = {
+  'openai-text': 3,
+  'openai-image': 2, 
+  'anthropic-text': 3
 };
 
-// Define the services to check
-const SERVICES = ['openai-text', 'openai-image', 'anthropic-text'];
+// Extract just the service names for iteration
+const SERVICES = Object.keys(SERVICE_LIMITS);
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    // Get the IP address from the request
-    const ip = req.headers.get('x-forwarded-for') ||
-              req.headers.get('x-real-ip') ||
-              'unknown';
+    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const quotaInfo: Record<string, { remaining: number; limit: number; reset: number; resetsIn: string }> = {};
     
-    const quotas: Record<string, { remaining: number; limit: number; reset: string }> = {};
-    
-    // Get tomorrow's date at midnight UTC (when quota resets)
-    const tomorrow = new Date();
-    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-    tomorrow.setUTCHours(0, 0, 0, 0);
-    const resetTime = tomorrow.toISOString();
-    
-    // Get the remaining quota for each service
-    const pipeline = redis.pipeline();
-    
-    SERVICES.forEach(service => {
-      const key = `${ip}-${service}`;
-      pipeline.get(key);
-    });
-    
-    const results = await pipeline.exec();
-    
-    // Process results
-    SERVICES.forEach((service, index) => {
-      const usedCount = results[index] ? parseInt(results[index] as string, 10) : 0;
-      const limit = QUOTA_LIMITS[service as keyof typeof QUOTA_LIMITS];
+    // For each service, check if the key exists and how many entries it has
+    for (const service of SERVICES) {
+      const key = `${ipAddress}-${service}`;
+      const limit = SERVICE_LIMITS[service as keyof typeof SERVICE_LIMITS];
       
-      quotas[service] = {
-        remaining: Math.max(0, limit - usedCount),
-        limit,
-        reset: resetTime,
-      };
-    });
+      try {
+        // Check if the key exists
+        const exists = await redis.exists(key);
+        
+        if (exists) {
+          const used = await redis.zcard(key);
+          
+          // Find the expiration time
+          const ttl = await redis.ttl(key);
+          const reset = ttl > 0 ? Date.now() + (ttl * 1000) : Date.now() + 24 * 60 * 60 * 1000;
+          
+          quotaInfo[service] = {
+            remaining: Math.max(0, limit - used),
+            limit,
+            reset,
+            resetsIn: formatTimeUntilReset(reset)
+          };
+        } else {
+          // If key doesn't exist, user has full quota
+          quotaInfo[service] = {
+            remaining: limit,
+            limit,
+            reset: Date.now() + 24 * 60 * 60 * 1000,
+            resetsIn: '24h 0m'
+          };
+        }
+      } catch (err) {
+        console.error(`Error getting rate limit for ${service}:`, err);
+        // Provide default values if there's an error
+        quotaInfo[service] = {
+          remaining: limit,
+          limit,
+          reset: Date.now() + 24 * 60 * 60 * 1000,
+          resetsIn: '24h 0m'
+        };
+      }
+    }
     
-    return NextResponse.json({ quotas }, { status: 200 });
+    return NextResponse.json({ quotas: quotaInfo }, { status: 200 });
   } catch (error) {
     console.error('Error fetching quota information:', error);
     return NextResponse.json(
