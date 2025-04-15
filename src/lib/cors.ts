@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 const corsOptions = {
   allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedOrigins: ['*'], // Use specific domains in production, e.g. ['https://yourdomain.com']
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-QUOTA-KEY-TYPE', 'X-MAX-REQUESTS'],
+  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset',],
   maxAge: 86400, // 24 hours in seconds
   credentials: true,
 };

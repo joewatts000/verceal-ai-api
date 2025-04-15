@@ -14,7 +14,7 @@ export function middleware(request: NextRequest) {
     // Set CORS headers for preflight
     response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key, X-QUOTA-KEY-TYPE, X-MAX-REQUESTS');
     response.headers.set('Access-Control-Max-Age', '86400'); // 24 hours
     response.headers.set('Access-Control-Allow-Credentials', 'true');
     
