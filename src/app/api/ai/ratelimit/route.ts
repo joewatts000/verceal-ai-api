@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const key = `${ipAddress}-${quotaKeyType}`;
     const allowance = await getAllowance(redis, key, parseInt(maxRequests || ''));
 
-    return NextResponse.json({ allowance });
+    return NextResponse.json({ ...allowance });
   } catch (error) {
     return NextResponse.json({ error: `Failed to fetch rate limit allowance. ${error}` }, { status: 500 });
   }
