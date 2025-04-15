@@ -11,9 +11,8 @@ const redis = new Redis({
 
 // Define the services and their daily limits
 const SERVICE_LIMITS = {
-  'openai-text': 3,
-  'openai-image': 2, 
-  'anthropic-text': 3
+  'openai-image': 10, 
+  'anthropic-text': 20
 };
 
 // Extract just the service names for iteration
