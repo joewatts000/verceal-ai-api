@@ -82,7 +82,7 @@ export function middleware(request: NextRequest) {
       replicate: 'REPLICATE_API_KEY',
       gemini: 'GOOGLE_AI_API_KEY',
       stability: 'STABILITY_API_KEY',
-      rateLimitCheck: 'OPENAI_API_KEY' // hack, just needed to pass middleware
+      ratelimit: 'OPENAI_API_KEY' // hack, just needed to pass middleware
     };
 
     const envKey = keyMap[provider.toLowerCase()];
