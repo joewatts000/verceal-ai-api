@@ -12,7 +12,7 @@ const redis = new Redis({
 const QUOTA_LIMITS = {
   'openai-text': 10,
   'openai-image': 10,
-  'anthropic-text': 10,
+  'anthropic-text': 20,
 };
 
 // Define the services to check
