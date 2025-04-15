@@ -20,7 +20,6 @@ export function parseTimeToMs(timeStr: string): number {
 
 export function createSlidingWindowRateLimiter(redis: Redis, maxRequests: number, windowSize: string) {
   const windowSizeMs = parseTimeToMs(windowSize);
-  
   /**
    * Limit based on the provided key using a true sliding window
    */
@@ -59,4 +58,16 @@ export function createSlidingWindowRateLimiter(redis: Redis, maxRequests: number
   }
   
   return { limit };
+}
+
+/**
+ * Check the current allowance left for the provided key
+ */
+export async function getAllowance(redis: Redis, key: string, maxRequests: number) {
+  const requestCount = await redis.zcard(key);
+  const remaining = Math.max(0, maxRequests - requestCount);
+
+  return {
+    remaining,
+  };
 }
