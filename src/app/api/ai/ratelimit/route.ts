@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllowance } from '@/lib/rateLimiter';
 import { Redis } from '@upstash/redis';
 
 const redis = new Redis({
@@ -9,11 +8,13 @@ const redis = new Redis({
 
 export async function GET(req: NextRequest) {
   try {
-    const quotaKeyType = req.headers.get('x-quota-key-type') || '';
-    const maxRequests = req.headers.get('x-max-requests');
-    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-    const key = `${ipAddress}-${quotaKeyType}`;
-    const allowance = await getAllowance(redis, key, parseInt(maxRequests || ''));
+    // const quotaKeyType = req.headers.get('x-quota-key-type') || '';
+    // const maxRequests = req.headers.get('x-max-requests');
+    // const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    // const key = `${ipAddress}-${quotaKeyType}`;
+    // const allowance = await getAllowance(redis, key, parseInt(maxRequests || ''));
+
+    const allowance = { test: 10 };
 
     return NextResponse.json({ ...allowance });
   } catch (error) {
