@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { prompt, model = 'dall-e-3', n = 1, size = '1024x1024', quality = 'standard', style = 'vivid' } = await req.json();
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
