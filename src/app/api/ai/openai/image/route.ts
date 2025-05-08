@@ -26,7 +26,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { prompt, model = 'dall-e-3', n = 1, size = '1024x1024', quality = 'standard', style = 'vivid' } = await req.json();
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
@@ -40,14 +39,12 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         prompt,
-        model: 'gpt-image-1',
+        model,
         n,
         size,
-        quality: 'high',
-        // output_compression: '',
-        // style,
-        // response_format: 'url'
-        output_format: 'jpeg',
+        quality,
+        style,
+        response_format: 'url'
       })
     });
 
