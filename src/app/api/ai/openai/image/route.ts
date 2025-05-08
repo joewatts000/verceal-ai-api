@@ -39,12 +39,14 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         prompt,
-        model,
+        model: 'gpt-image-1',
         n,
         size,
-        quality,
-        style,
-        response_format: 'url'
+        quality: 'high',
+        // output_compression: '',
+        // style,
+        // response_format: 'url'
+        output_format: 'jpeg',
       })
     });
 
