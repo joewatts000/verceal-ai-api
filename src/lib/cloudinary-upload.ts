@@ -27,3 +27,21 @@ export async function uploadToCloudinary(data: UploadResult) {
     ] 
   };    
 }
+
+export async function uploadBase64ToCloudinary(base64Data: string) {
+// Cloudinary expects the base64 string to be prefixed with a MIME type
+  const base64WithPrefix = `data:image/jpeg;base64,${base64Data}`;
+
+  const uploadResult = await cloudinary.uploader.upload(
+    base64WithPrefix,
+    { folder: 'e2-studio-ai-generated-images' }
+  );
+
+  return { 
+    data: [
+      {
+        url: uploadResult?.secure_url
+      }
+    ] 
+  };    
+}
