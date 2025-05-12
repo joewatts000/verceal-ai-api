@@ -50,14 +50,14 @@ export async function POST(req: NextRequest) {
 
     if (!prompt) {
       return addCorsHeaders(
-        NextResponse.json({ error: 'Prompt is required' }, { status: 400 }),
+        NextResponse.json({ error: 'Prompt is required', reset, resetsIn: waitTimeStr, remaining }, { status: 400 }),
         req
       );
     }
 
     if (!model) {
       return addCorsHeaders(
-        NextResponse.json({ error: 'Model is required' }, { status: 400 }),
+        NextResponse.json({ error: 'Model is required', reset, resetsIn: waitTimeStr, remaining }, { status: 400 }),
         req
       );
     }

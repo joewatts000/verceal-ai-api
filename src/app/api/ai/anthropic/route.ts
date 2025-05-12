@@ -29,11 +29,11 @@ export async function POST(req: NextRequest) {
     const { prompt, model, stream = false, systemPrompt, options = {} } = await req.json();
 
     if (!prompt) {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Prompt is required', reset, resetsIn: waitTimeStr, remaining }, { status: 400 });
     }
 
     if (!model) {
-      return NextResponse.json({ error: 'Model is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Model is required', reset, resetsIn: waitTimeStr, remaining }, { status: 400 });
     }
 
     const anthropicModel = anthropic(model);
