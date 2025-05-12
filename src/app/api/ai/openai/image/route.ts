@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
      
     const { prompt, size = '1024x1024' } = await req.json();
     if (!prompt) {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Prompt is required', resetsIn: waitTimeStr, reset, remaining }, { status: 400 });
     }
     const openaiApiKey = getEnvVariable('OPENAI_API_KEY');
     const response = await fetch('https://api.openai.com/v1/images/generations', {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {      
       return NextResponse.json(
-        { error: data.error?.message || 'e1: An error occurred with the OpenAI Image API' },
+        { error: data.error?.message || 'e1: An error occurred with the OpenAI Image API', resetsIn: waitTimeStr, reset, remaining },
         { status: response.status, headers: { 'Access-Control-Allow-Origin': '*' } }
       );
     }
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 
     if (!returnData || !returnData.data || returnData.data.length === 0) {
       return NextResponse.json(
-        { error: 'e3: An error occurred with the Cloudinary upload' },
+        { error: 'e3: An error occurred with the Cloudinary upload', resetsIn: waitTimeStr, reset, remaining },
         { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
       );
     }
