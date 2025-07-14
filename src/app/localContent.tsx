@@ -76,9 +76,13 @@ export default function LocalContent() {
           </FormButton>
         </FormSection>
         <YSpacer />
+        <hr />
+        <YSpacer />
         <FormButton onClick={checkQuota}>
           Check quota
         </FormButton>
+        <YSpacer />
+        <hr />
         <YSpacer />
         <ApiResponseDisplay error={error} response={response} />
       </Container>
