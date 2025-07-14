@@ -15,7 +15,10 @@ export async function callApi({
   if (provider === 'stability') {
     url = `/api/ai/stability/image`;
     body = { prompt };
-  } else if (provider === 'openai' && (model === 'dall-e3' || model === 'gpt-image-1')) {
+  } else if (provider === 'openai' && model === 'dall-e3') {
+    url = `/api/ai/openai/dalle`;
+    body = { prompt };
+  } else if (provider === 'openai' && model === 'gpt-image-1') {
     url = `/api/ai/openai/image`;
     body = { prompt };
   }
