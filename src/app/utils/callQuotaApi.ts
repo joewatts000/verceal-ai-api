@@ -10,8 +10,6 @@ export async function callQuotaApi({
     },
   });
 
-  console.log(res)
-
   if (!res.ok) {
     throw new Error(`Error: ${res.status}`);
   }
